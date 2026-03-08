@@ -2,14 +2,9 @@
 
 ## StormCore Weather Engine
 
-**Xweather-Fidelity Weather Infrastructure for AI-Claims-LLC**
-
-| | |
-|---|---|
-| **Version** | 1.0 |
-| **Status** | DRAFT |
-| **Author** | Rob-otix AI Ltd |
-| **Date** | March 2026 |
+> Xweather-Fidelity Weather Infrastructure
+>
+> **Version:** 1.0 | **Status:** DRAFT | **Author:** Rob-otix AI Ltd | **Date:** March 2026
 
 ---
 
@@ -29,9 +24,9 @@
 
 ## 1. Executive Summary
 
-StormCore is a Rust + TypeScript weather data engine built to match or exceed the fidelity of commercial providers such as Xweather and Weather Underground. It is purpose-built for the AI-Claims-LLC insurance claims platform, providing authoritative, high-resolution weather verification data that supports automated claims adjudication.
+StormCore is a Rust + TypeScript weather data engine built to match or exceed the fidelity of commercial providers such as Xweather and Weather Underground. It provides authoritative, high-resolution weather verification data through a clean, queryable API.
 
-Rather than paying commercial API costs that scale with claim volume, StormCore ingests freely available government data sources, processes them into structured, queryable formats, and exposes a clean API consumed directly by the claims platform. Historical data fidelity and legal defensibility are first-class concerns.
+Rather than paying commercial API costs that scale with query volume, StormCore ingests freely available government data sources, processes them into structured, queryable formats, and exposes a clean API. Historical data fidelity and data provenance are first-class concerns.
 
 ---
 
@@ -39,10 +34,10 @@ Rather than paying commercial API costs that scale with claim volume, StormCore 
 
 ### 2.1 Current Pain Points
 
-- Commercial weather APIs (Xweather, Tomorrow.io) become cost-prohibitive at claims volume
-- No single free API matches the data fidelity required for claims verification
-- Claims platforms need point-in-time historical queries, not just current conditions
-- Insurance use cases require authoritative, legally defensible data sources
+- Commercial weather APIs (Xweather, Tomorrow.io) become cost-prohibitive at scale
+- No single free API matches the data fidelity required for professional weather verification
+- Applications need point-in-time historical queries, not just current conditions
+- Professional use cases require authoritative data sources with clear provenance
 - Tile rendering for visual evidence is locked behind expensive commercial plans
 
 ### 2.2 Opportunity
@@ -55,22 +50,22 @@ The raw data required to match Xweather fidelity is freely available from NOAA, 
 
 ### 3.1 Primary Goals
 
-- Match Xweather data fidelity for claims-relevant weather events
-- Eliminate per-request commercial API costs for AI-Claims-LLC
+- Match Xweather data fidelity for severe weather events
+- Eliminate per-request commercial API costs
 - Provide point-in-time historical queries to 1991 for NEXRAD, 2001 for MRMS
-- Deliver data that is legally defensible in disputed claims scenarios
-- Support visual radar evidence generation for claim documentation
+- Deliver data with full provenance and authoritative sourcing
+- Support visual radar evidence generation and documentation
 
 ### 3.2 Success Metrics
 
 | Metric | Target | Measurement Method |
-|--------|--------|-------------------|
+|--------|--------|--------------------|
 | Historical query latency | < 500ms p95 | API response time monitoring |
 | Radar data freshness (live) | < 5 minutes | Ingest pipeline lag tracking |
 | MRMS data coverage (US) | >= 95% CONUS | Grid coverage audit |
 | Lightning strike latency | < 60 seconds | Strike timestamp vs ingest time |
 | System uptime | >= 99.5% | Health check monitoring |
-| Claim query accuracy vs NOAA | >= 99% | Spot-check validation suite |
+| Query accuracy vs NOAA | >= 99% | Spot-check validation suite |
 
 ---
 
@@ -78,17 +73,14 @@ The raw data required to match Xweather fidelity is freely available from NOAA, 
 
 ### 4.1 Primary Personas
 
-**Claims Adjuster (Automated System)**
+**Application Developer**
+A developer integrating StormCore into their application queries the API to verify weather conditions at a specific location and time, cross-reference against event types, and produce structured weather verification results.
 
-The AI-Claims-LLC automated adjudication engine queries StormCore when processing a new claim. It needs to verify weather conditions at a specific location and time, cross-reference against the claim event type, and produce a confidence score for weather causation.
-
-**Claims Reviewer (Human)**
-
-A human reviewer examining a flagged claim needs to see visual evidence of weather conditions — a radar snapshot, a lightning strike overlay, a hail size estimate — that they can attach to the claim record and reference in correspondence.
+**Weather Analyst (Human)**
+A human analyst examining weather events needs to see visual evidence of weather conditions — a radar snapshot, a lightning strike overlay, a hail size estimate — that they can use for reporting and documentation.
 
 **Platform Engineer (Rob-otix)**
-
-The internal engineering team needs to maintain the ingest pipelines, monitor data quality, replay historical data when backfilling claims, and add new data products as the claims platform evolves.
+The internal engineering team needs to maintain the ingest pipelines, monitor data quality, replay historical data for backfilling, and add new data products as the platform evolves.
 
 ### 4.2 Core Use Cases
 
@@ -98,7 +90,7 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | UC-02 | Hail event verification | lat, lon, date range | MESH hail size, probability, track |
 | UC-03 | Lightning strike lookup | lat, lon, timestamp, radius | Strike count, distance, energy |
 | UC-04 | Severe warning history | lat, lon, timestamp | Active warnings at time of event |
-| UC-05 | Radar tile export | lat, lon, timestamp | PNG radar image for claim attachment |
+| UC-05 | Radar tile export | lat, lon, timestamp | PNG radar image for documentation |
 | UC-06 | Wind event verification | lat, lon, timestamp | Observed/estimated wind speed, gust |
 | UC-07 | Flood/precip verification | lat, lon, date range | QPE accumulation, return period |
 | UC-08 | Live monitoring feed | region polygon | Real-time severe event stream |
@@ -126,14 +118,14 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 
 | ID | Requirement | Priority | Notes |
 |----|-------------|----------|-------|
-| F-11 | Point-in-time weather query by lat/lon/timestamp | MUST | Core claims use case |
+| F-11 | Point-in-time weather query by lat/lon/timestamp | MUST | Core use case |
 | F-12 | Radius query returning all events within N km of point | MUST | Variable radius support |
-| F-13 | Time-range query returning aggregated conditions over period | MUST | For multi-day claims |
-| F-14 | Hail query returning MESH value, probability, and size class | MUST | Insurance-critical |
-| F-15 | Lightning query with strike count and nearest strike distance | MUST | Fire/surge claims |
+| F-13 | Time-range query returning aggregated conditions over period | MUST | Multi-day event support |
+| F-14 | Hail query returning MESH value, probability, and size class | MUST | Critical weather product |
+| F-15 | Lightning query with strike count and nearest strike distance | MUST | Fire/surge detection |
 | F-16 | Polygon query for regional event detection | SHOULD | CAT event support |
-| F-17 | Return structured confidence score per data product | MUST | Claims adjudication |
-| F-18 | Return data provenance (source, resolution, age) | MUST | Legal defensibility |
+| F-17 | Return structured confidence score per data product | MUST | Data quality scoring |
+| F-18 | Return data provenance (source, resolution, age) | MUST | Data traceability |
 
 ### 5.3 Tile and Visualisation API
 
@@ -141,10 +133,10 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 |----|-------------|----------|-------|
 | F-19 | Serve XYZ radar tiles for current and historical timestamps | MUST | Visual evidence |
 | F-20 | Apply NWS reflectivity colour scale to radar tiles | MUST | Standard rendering |
-| F-21 | Export point-in-time radar PNG for claim attachment | MUST | Document generation |
+| F-21 | Export point-in-time radar PNG for documentation | MUST | Document generation |
 | F-22 | Serve lightning strike overlay tiles | SHOULD | Map visualisation |
 | F-23 | Serve NWS alert polygon tiles | SHOULD | Warning display |
-| F-24 | Support Mapbox GL compatible tile endpoints | MUST | Claims UI integration |
+| F-24 | Support Mapbox GL compatible tile endpoints | MUST | UI integration |
 
 ---
 
@@ -195,9 +187,9 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 ## 9. Phased Delivery
 
 | Phase | Name | Deliverables | Timeline |
-|-------|------|-------------|----------|
+|-------|------|--------------|----------|
 | 1 | Core Ingest | MRMS ingest, TimescaleDB schema, historical point query API | Weeks 1-3 |
-| 2 | Claims API | NWS alerts, claims-client TS SDK, AI-Claims-LLC integration | Weeks 4-5 |
+| 2 | Query API | NWS alerts, TypeScript SDK, application integration | Weeks 4-5 |
 | 3 | Lightning | Blitzortung ingest, strike query, tile overlay | Weeks 6-7 |
 | 4 | Radar Tiles | NEXRAD decode, tile renderer, Mapbox-compatible endpoints | Weeks 8-10 |
 | 5 | Hardening | Historical backfill, monitoring, gap detection, load testing | Weeks 11-12 |
