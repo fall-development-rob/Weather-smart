@@ -8,11 +8,11 @@
 
 ## Documents
 
-| Document | Description |
-|----------|-------------|
-| [Product Requirements (PRD)](./prd.md) | Goals, personas, use cases, functional & non-functional requirements, data sources, and phased delivery plan |
-| [Architecture Requirements (ARD)](./ard.md) | Repository structure, component architecture, data schema, API design, TypeScript SDK, infrastructure, tile rendering, observability, and security |
-| [Domain-Driven Design (DDD)](./ddd.md) | Ubiquitous language, bounded contexts, domain model (aggregates, value objects, events), repository interfaces, and domain services |
+| ID | Document | Description |
+|----|----------|-------------|
+| [ADR-001](./adr-001.md) | Product Requirements (PRD) | Goals, personas, use cases, functional & non-functional requirements, data sources, and phased delivery plan |
+| [ADR-002](./adr-002.md) | Architecture Requirements (ARD) | Repository structure, component architecture, data schema, API design, TypeScript SDK, infrastructure, tile rendering, observability, and security |
+| [ADR-003](./adr-003.md) | Domain-Driven Design (DDD) | Ubiquitous language, bounded contexts, domain model (aggregates, value objects, events), repository interfaces, and domain services |
 
 ---
 
