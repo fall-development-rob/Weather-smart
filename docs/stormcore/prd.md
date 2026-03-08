@@ -24,9 +24,9 @@
 
 ## 1. Executive Summary
 
-StormCore is a Rust + TypeScript weather data engine built to match or exceed the fidelity of commercial providers such as Xweather and Weather Underground. It provides authoritative, high-resolution weather verification data through a clean, queryable API.
+StormCore is a Rust + TypeScript weather data engine built to match or exceed the fidelity of commercial providers such as Xweather and Weather Underground. It provides authoritative, high-resolution data for severe weather, storms, wildfires, and hurricanes through a clean, queryable API.
 
-Rather than paying commercial API costs that scale with query volume, StormCore ingests freely available government data sources, processes them into structured, queryable formats, and exposes a clean API. Historical data fidelity and data provenance are first-class concerns.
+Rather than paying commercial API costs that scale with query volume, StormCore ingests freely available government data sources, processes them into structured, queryable formats, and exposes a clean API. Coverage spans the full spectrum of natural hazards — thunderstorms, tornadoes, hail, lightning, hurricanes, flooding, and wildfires. Historical data fidelity and data provenance are first-class concerns.
 
 ---
 
@@ -35,9 +35,9 @@ Rather than paying commercial API costs that scale with query volume, StormCore 
 ### 2.1 Current Pain Points
 
 - Commercial weather APIs (Xweather, Tomorrow.io) become cost-prohibitive at scale
-- No single free API matches the data fidelity required for professional weather verification
+- No single free API covers storms, fires, and hurricanes with the fidelity required for professional use
 - Applications need point-in-time historical queries, not just current conditions
-- Professional use cases require authoritative data sources with clear provenance
+- Wildfire and hurricane tracking data is fragmented across multiple agencies (NIFC, FIRMS, NHC)
 - Tile rendering for visual evidence is locked behind expensive commercial plans
 
 ### 2.2 Opportunity
@@ -50,11 +50,11 @@ The raw data required to match Xweather fidelity is freely available from NOAA, 
 
 ### 3.1 Primary Goals
 
-- Match Xweather data fidelity for severe weather events
+- Match Xweather data fidelity for severe weather, storms, wildfires, and hurricanes
 - Eliminate per-request commercial API costs
 - Provide point-in-time historical queries to 1991 for NEXRAD, 2001 for MRMS
-- Deliver data with full provenance and authoritative sourcing
-- Support visual radar evidence generation and documentation
+- Unify storm, fire, and hurricane data from multiple agencies into a single API
+- Support visual radar, fire perimeter, and hurricane track evidence generation
 
 ### 3.2 Success Metrics
 
@@ -74,10 +74,10 @@ The raw data required to match Xweather fidelity is freely available from NOAA, 
 ### 4.1 Primary Personas
 
 **Application Developer**
-A developer integrating StormCore into their application queries the API to verify weather conditions at a specific location and time, cross-reference against event types, and produce structured weather verification results.
+A developer integrating StormCore into their application queries the API to verify weather conditions, track active wildfires, monitor hurricane paths, and produce structured event data for their users.
 
-**Weather Analyst (Human)**
-A human analyst examining weather events needs to see visual evidence of weather conditions — a radar snapshot, a lightning strike overlay, a hail size estimate — that they can use for reporting and documentation.
+**Weather / Emergency Analyst (Human)**
+A human analyst monitoring storms, wildfires, or hurricanes needs visual evidence — radar snapshots, fire perimeter maps, hurricane track overlays, lightning strike data — for situational awareness and reporting.
 
 **Platform Engineer (Rob-otix)**
 The internal engineering team needs to maintain the ingest pipelines, monitor data quality, replay historical data for backfilling, and add new data products as the platform evolves.
@@ -94,6 +94,9 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | UC-06 | Wind event verification | lat, lon, timestamp | Observed/estimated wind speed, gust |
 | UC-07 | Flood/precip verification | lat, lon, date range | QPE accumulation, return period |
 | UC-08 | Live monitoring feed | region polygon | Real-time severe event stream |
+| UC-09 | Wildfire detection | lat, lon, radius | Active fire hotspots, perimeters, spread direction |
+| UC-10 | Hurricane track query | storm ID or lat/lon | Track history, forecast cone, wind radii, intensity |
+| UC-11 | Fire weather conditions | lat, lon, timestamp | Red flag warnings, wind, humidity, fire weather index |
 
 ---
 
@@ -113,6 +116,10 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | F-08 | Ingest MRMS QPE for quantitative precipitation estimates | MUST | NOAA MRMS |
 | F-09 | Ingest MRMS rotation tracks for tornado detection | SHOULD | NOAA MRMS |
 | F-10 | Ingest NCEI storm event database for verified reports | SHOULD | NOAA NCEI |
+| F-25 | Ingest NASA FIRMS active fire hotspots (MODIS/VIIRS) | MUST | NASA FIRMS |
+| F-26 | Ingest NIFC wildfire perimeters and incident data | MUST | NIFC GeoMAC |
+| F-27 | Ingest NHC hurricane advisories, track forecasts, and wind radii | MUST | NHC/ATCF |
+| F-28 | Ingest NWS Red Flag and Fire Weather Watch warnings | MUST | NWS API |
 
 ### 5.2 Query API
 
@@ -126,6 +133,9 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | F-16 | Polygon query for regional event detection | SHOULD | CAT event support |
 | F-17 | Return structured confidence score per data product | MUST | Data quality scoring |
 | F-18 | Return data provenance (source, resolution, age) | MUST | Data traceability |
+| F-29 | Wildfire hotspot and perimeter query by lat/lon/radius | MUST | Fire monitoring |
+| F-30 | Hurricane track and intensity query by storm ID or region | MUST | Hurricane tracking |
+| F-31 | Fire weather index query (wind, humidity, red flag status) | MUST | Fire risk assessment |
 
 ### 5.3 Tile and Visualisation API
 
@@ -136,6 +146,8 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | F-21 | Export point-in-time radar PNG for documentation | MUST | Document generation |
 | F-22 | Serve lightning strike overlay tiles | SHOULD | Map visualisation |
 | F-23 | Serve NWS alert polygon tiles | SHOULD | Warning display |
+| F-32 | Serve wildfire perimeter and hotspot overlay tiles | MUST | Fire visualisation |
+| F-33 | Serve hurricane track and forecast cone tiles | MUST | Hurricane visualisation |
 | F-24 | Support Mapbox GL compatible tile endpoints | MUST | UI integration |
 
 ---
@@ -168,6 +180,9 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | Iowa State ASOS | Surface obs (METAR), 900+ US stations | 5-60 min | HTTP feed | Free |
 | NOAA NCEI | Verified storm events, historical | Daily | REST API | Free |
 | NOAA SWDI | Hail, tornado, lightning reports | Daily | REST API | Free |
+| NASA FIRMS | Active fire hotspots (MODIS/VIIRS), global | Near real-time | REST API | Free |
+| NIFC (GeoMAC) | Wildfire perimeters, incident reports | Hourly | GeoJSON feed | Free |
+| NHC / ATCF | Hurricane advisories, tracks, wind radii | 6 hours | REST / FTP | Free |
 | Open-Meteo Archive | Model-based historical forecast data | Daily | REST API | Free |
 
 ---
@@ -175,7 +190,6 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 ## 8. Out of Scope (v1)
 
 - International radar coverage (non-US)
-- Tropical storm / hurricane track modelling
 - Marine / oceanic weather products
 - Air quality data products
 - Commercial PWS (personal weather station) network aggregation
@@ -192,4 +206,5 @@ The internal engineering team needs to maintain the ingest pipelines, monitor da
 | 2 | Query API | NWS alerts, TypeScript SDK, application integration | Weeks 4-5 |
 | 3 | Lightning | Blitzortung ingest, strike query, tile overlay | Weeks 6-7 |
 | 4 | Radar Tiles | NEXRAD decode, tile renderer, Mapbox-compatible endpoints | Weeks 8-10 |
-| 5 | Hardening | Historical backfill, monitoring, gap detection, load testing | Weeks 11-12 |
+| 5 | Fire & Hurricanes | FIRMS/NIFC fire ingest, NHC hurricane tracks, fire/storm tiles | Weeks 11-13 |
+| 6 | Hardening | Historical backfill, monitoring, gap detection, load testing | Weeks 14-16 |

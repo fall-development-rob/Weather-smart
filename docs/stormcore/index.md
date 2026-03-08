@@ -18,7 +18,7 @@
 
 ## Quick Links
 
-- **Core Use Case:** Historical point-in-time weather verification and monitoring
+- **Core Use Case:** Real-time and historical monitoring for severe weather, storms, wildfires, and hurricanes
 - **Tech Stack:** Rust (ingest, decode, tile render) + TypeScript (SDK, API surface) + TimescaleDB + Redis
-- **Data Sources:** NOAA MRMS, NEXRAD Level II, NWS CAP Alerts, Blitzortung, Iowa State ASOS — all free
-- **Delivery:** 5 phases over 12 weeks (Core Ingest → Query API → Lightning → Radar Tiles → Hardening)
+- **Data Sources:** NOAA MRMS, NEXRAD Level II, NWS CAP Alerts, Blitzortung, Iowa State ASOS, NIFC/FIRMS fire data, NHC hurricane tracks — all free
+- **Delivery:** 6 phases over 16 weeks (Core Ingest → Query API → Lightning → Radar Tiles → Fire & Hurricanes → Hardening)
